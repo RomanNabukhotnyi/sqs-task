@@ -1,0 +1,70 @@
+service: sqs
+frameworkVersion: "3"
+plugins:
+  - serverless-webpack
+useDotenv: true
+provider:
+  name: aws
+  runtime: nodejs14.x
+  apiGateway:
+    minimumCompressionSize: 1024
+    shouldStartNameWithService: true
+  environment:
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+    NODE_OPTIONS: --enable-source-maps --stack-trace-limit=1000
+    SQS_URL: ${env:SQS_URL}
+    DB_HOST: ${env:DB_HOST}
+    DB_USER: ${env:DB_USER}
+    DB_PASSWORD: ${env:DB_PASSWORD}
+    DB: ${env:DB}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+        - sqs:*
+        - ec2:*
+      Resource: "*"
+
+functions:
+    placeOrder:
+      handler: src/functions/placeOrder/handler.main
+      timeout: 60
+      events:
+        - http:
+            path: /placeOrder
+            method: post
+            cors: true
+
+    processSQSMessageBatch:
+      handler: src/functions/processSQSMessageBatch/handler.main
+      events:
+        - sqs:
+            arn: ${env:SQS_ARN}
+            batchSize: 100
+            maximumBatchingWindow: 1
+      vpc:
+        securityGroupIds:
+          - sg-0cf15da4cfecf9398
+        subnetIds:
+          - subnet-08073e901d3d8145a
+          - subnet-0e547f242a0b03f8d
+          - subnet-0472d38832cdcf4c5
+          - subnet-0c4a03a23b364526c
+          - subnet-00f8751f2834d27f3
+          - subnet-07e563cf877298caa
+
+    info:
+      handler: src/functions/info/handler.main
+      events:
+        - http:
+            path: /info
+            method: get
+            cors: true
+
+# package:
+#   individually: true
+custom:
+  webpack:
+    webpackConfig: webpack.config.ts
+    includeModules: true
+    packager: npm
