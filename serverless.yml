@@ -12,7 +12,7 @@ provider:
   environment:
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
     NODE_OPTIONS: --enable-source-maps --stack-trace-limit=1000
-    SQS_URL: ${env:SQS_URL}
+    SQS_URL: { Ref: SQSQueue }
     DB_HOST: ${env:DB_HOST}
     DB_USER: ${env:DB_USER}
     DB_PASSWORD: ${env:DB_PASSWORD}
@@ -39,32 +39,33 @@ functions:
       handler: src/functions/processSQSMessageBatch/handler.main
       events:
         - sqs:
-            arn: ${env:SQS_ARN}
+            arn: 
+              Fn::GetAtt:
+                - SQSQueue
+                - Arn
             batchSize: 100
             maximumBatchingWindow: 1
-      vpc:
-        securityGroupIds:
-          - sg-0cf15da4cfecf9398
-        subnetIds:
-          - subnet-08073e901d3d8145a
-          - subnet-0e547f242a0b03f8d
-          - subnet-0472d38832cdcf4c5
-          - subnet-0c4a03a23b364526c
-          - subnet-00f8751f2834d27f3
-          - subnet-07e563cf877298caa
 
-    info:
-      handler: src/functions/info/handler.main
+    getStatistic:
+      handler: src/functions/getStatistic/handler.main
       events:
         - http:
-            path: /info
+            path: /getStatistic
             method: get
             cors: true
 
 # package:
 #   individually: true
 custom:
+  sqsName: order-sqs-queue
   webpack:
     webpackConfig: webpack.config.ts
     includeModules: true
     packager: npm
+
+resources:
+ Resources:
+   SQSQueue:
+     Type: AWS::SQS::Queue
+     Properties:
+       QueueName: ${self:custom.sqsName}

@@ -1,19 +1,19 @@
+import { SQSEvent } from 'aws-lambda';
+
 import { middyfy } from '../../libs/lambda';
 import { db } from '../../libs/db';
 
-const processSQSMessageBatch = async (event) => {    
+const processSQSMessageBatch = async (event: SQSEvent) => {    
     const { Records } = event;
 
-    for (let record of Records) {
-        const body = JSON.parse(record.body);
-        const sql = `INSERT INTO orders (user, shop) VALUES ('${body.user}', '${body.shop}');`;
-        const p = new Promise(resolve => {
-            db.query(sql, (_err, res) => {
-                resolve(res);
-            }); 
-        });
-        await p;
-    } 
+    const sql = 'INSERT INTO orders (user, shop) VALUES ?;';
+    const values = Records.map(({ body }) => ([JSON.parse(body).user, JSON.parse(body).shop]));
+    const p = new Promise(resolve => {
+        db.query(sql, [values], (_err, res) => {
+            resolve(res);
+        }); 
+    });
+    await p;
 };
 
 export const main = middyfy(processSQSMessageBatch);

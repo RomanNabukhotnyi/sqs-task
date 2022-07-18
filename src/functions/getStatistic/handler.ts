@@ -3,7 +3,7 @@ import type { APIGatewayProxyEvent } from 'aws-lambda';
 import { middyfy } from '../../libs/lambda';
 import { db } from '../../libs/db';
 
-const info = async (event: APIGatewayProxyEvent) => {
+const getStatistic = async (event: APIGatewayProxyEvent) => {
     try {
         const user = event.queryStringParameters?.user;
         const period = Number(event.queryStringParameters?.period);
@@ -32,4 +32,4 @@ const info = async (event: APIGatewayProxyEvent) => {
     }
 };
 
-export const main = middyfy(info);
+export const main = middyfy(getStatistic);
