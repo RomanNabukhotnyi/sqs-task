@@ -20,12 +20,13 @@ const getStatistic = async (event: APIGatewayProxyEvent) => {
         }
         const p = new Promise(resolve => {
             db.query(sql, (_err, res) => {
-                resolve(res);
+                resolve(res[0]);
             }); 
         });
         const result = await p;
+        
         return {
-            result,
+            count: result['COUNT(*)'],
         };
     } catch (error) {
         console.log(error);
