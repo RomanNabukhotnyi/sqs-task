@@ -11,7 +11,8 @@
     "sourceMap": true,
     "target": "ES2022",
     "outDir": "lib",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "emitDecoratorMetadata": true,
   },
   "include": ["src/**/*.ts", "serverless.ts", "webpack.config.ts"],
   "exclude": [

@@ -14,7 +14,7 @@ provider:
     NODE_OPTIONS: --enable-source-maps --stack-trace-limit=1000
     SQS_URL: { Ref: SQSQueue }
     DB_HOST: ${env:DB_HOST}
-    DB_USER: ${env:DB_USER}
+    DB_USERNAME: ${env:DB_USERNAME}
     DB_PASSWORD: ${env:DB_PASSWORD}
     DB: ${env:DB}
   iamRoleStatements:

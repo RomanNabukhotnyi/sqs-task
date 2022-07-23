@@ -1,19 +1,26 @@
 import { SQSEvent } from 'aws-lambda';
 
 import { middyfy } from '../../libs/lambda';
-import { db } from '../../libs/db';
+import { OrderRepository } from '../../db/repository/OrderRepository';
+import { dataSource } from '../../db/db';
 
-const processSQSMessageBatch = async (event: SQSEvent) => {    
+const processSQSMessageBatch = async (event: SQSEvent) => {  
+    if (!dataSource.isInitialized) {
+        await dataSource
+            .initialize()
+            .then(() => {
+                console.log('Data Source has been initialized!');
+            })
+            .catch((err) => {
+                console.error('Error during Data Source initialization:', err);
+            });
+    }
+    
     const { Records } = event;
+    const values: { user: string, shop: string }[] = Records.map(({ body }) => (JSON.parse(body)));
+    const result = await OrderRepository.insert(values);
+    return result;
 
-    const sql = 'INSERT INTO orders (user, shop) VALUES ?;';
-    const values = Records.map(({ body }) => ([JSON.parse(body).user, JSON.parse(body).shop]));
-    const p = new Promise(resolve => {
-        db.query(sql, [values], (_err, res) => {
-            resolve(res);
-        }); 
-    });
-    await p;
 };
 
 export const main = middyfy(processSQSMessageBatch);
